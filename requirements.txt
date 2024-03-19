@@ -4,3 +4,5 @@ flask==3.0.0
 flask[async]==3.0.0
 pillow==10.2.0
 2captcha-python==1.2.2
+requests==2.31.0
+numpy==1.26.4
