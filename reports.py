@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import requests
 from datetime import datetime, timedelta
+import math 
+import json
 
 solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb")
 
@@ -16,7 +18,9 @@ class Reports:
         option = uc.ChromeOptions()
         option.add_argument(
             '--no-first-run --no-service-autorun --password-store=basic')
-        self.driver = uc.Chrome(options=option, command_executor="http://selenium-hub:4444/wd/hub",)
+        self.driver = uc.Chrome(options=option, 
+                                #command_executor="http://selenium-hub:4444/wd/hub",
+                                )
 
     def auth(self, username, password):
         try:
@@ -107,30 +111,34 @@ class Reports:
                 "https://wallet.1cupis.ru/profile-api/v2/payment/find", json=filterParams)
             jsonData = response.json()
 
-            if len(jsonData["responseData"]["payments"]) == 1:
+            if len(jsonData["responseData"]["payments"]) < 50:
                 hasMore = False
                 
             for payment in jsonData["responseData"]["payments"]:
                 lastFetchedRecordsDateTime = payment["createdAt"]
+
                 if payment["paymentStatus"]["paymentStatusType"] == 'COMPLETED':
                     recordsCount += 1
+                    amount = -abs(float(payment["amount"]["amount"]))
+                    if payment["subtitle"] == "Выплата выигрыша":
+                        amount = abs(amount)
                     if payment["title"] in bkAllTimeTotal:
-                        bkAllTimeTotal[payment["title"]] += float(payment["amount"]["amount"])
+                        bkAllTimeTotal[payment["title"]] += amount
                     else:
-                        bkAllTimeTotal[payment["title"]] = float(payment["amount"]["amount"])
+                        bkAllTimeTotal[payment["title"]] = amount
 
                     lastThreeMonths = datetime.strptime(payment["createdAt"], '%Y-%m-%dT%H:%M:%S.%f%z') + timedelta(days=30*3)
                     if lastThreeMonths.timestamp() > datetime.now().timestamp():
                         if payment["title"] in bkLastThreeMonthTotal:
-                            bkLastThreeMonthTotal[payment["title"]] += float(payment["amount"]["amount"])
+                            bkLastThreeMonthTotal[payment["title"]] += amount
                         else:
-                            bkLastThreeMonthTotal[payment["title"]] = float(payment["amount"]["amount"])
+                            bkLastThreeMonthTotal[payment["title"]] = amount
 
         for [bkName, bkTotal] in bkAllTimeTotal.items():
-            result["itemsAllTime"].append({"bkName": bkName, "total": bkTotal})
+            result["itemsAllTime"].append({"bkName": bkName, "total": math.floor(bkTotal)})
         
         for [bkName, bkTotal] in bkLastThreeMonthTotal.items():
-            result["itemsLastThreeMonths"].append({"bkName": bkName, "total": bkTotal})
+            result["itemsLastThreeMonths"].append({"bkName": bkName, "total": math.floor(bkTotal)})
 
         result["recordsCount"] = recordsCount
 
