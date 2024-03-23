@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-
+from reports import Reports
 app = Flask(__name__)
 
 
@@ -14,4 +14,6 @@ async def load_cars():
     username = data["username"]
     password = data["password"]
 
-    return 1
+    report = Reports().get_report(username, password)
+
+    return jsonify(report)

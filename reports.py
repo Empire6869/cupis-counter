@@ -1,14 +1,12 @@
 from selenium.webdriver.common.by import By
 from time import sleep
 import undetected_chromedriver as uc
-import re
 from twocaptcha import TwoCaptcha
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import requests
-import numpy as np
-import csv
+from datetime import datetime, timedelta
 
 solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb")
 
@@ -76,19 +74,68 @@ class Reports:
 
         self.driver.get('https://wallet.1cupis.ru/history')
         s = requests.Session()
-        # Set correct user agent
         selenium_user_agent = self.driver.execute_script(
             "return navigator.userAgent;")
         s.headers.update({"user-agent": selenium_user_agent})
-
         for cookie in self.driver.get_cookies():
             s.cookies.set(cookie['name'], cookie['value'],
                           domain=cookie['domain'])
+        result = {
+            "recordsCount": 0,
+            "itemsAllTime": [],
+            "itemsLastThreeMonths": [],
+            "accountStatus": 'basic'
+        }
+        try:
+            accountResponse = s.get('https://wallet.1cupis.ru/profile-api/v1/customer')
+            accountReponseJson = accountResponse.json()
+            result["accountStatus"] = accountReponseJson["responseData"]["identification"].lower()
+        except Exception as e:
+            print(e)
 
-        response = s.post(
-            "https://wallet.1cupis.ru/profile-api/v2/payment/find", json={"filter": {"paymentTypes": [], "merchantIds": [], "hasCashback": False}, "size": 50})
+        bkAllTimeTotal = {}
+        bkLastThreeMonthTotal = {}
+        recordsCount = 0
+        hasMore = True
+        lastFetchedRecordsDateTime = None
+        while hasMore:
+            filterParams = {"filter": {"paymentTypes": [], "merchantIds": [], "hasCashback": False}, "size": 50}
+            if lastFetchedRecordsDateTime:
+                filterParams["filter"]["until"] = lastFetchedRecordsDateTime
 
-        print(response.json())
+            response = s.post(
+                "https://wallet.1cupis.ru/profile-api/v2/payment/find", json=filterParams)
+            jsonData = response.json()
 
+            if len(jsonData["responseData"]["payments"]) == 1:
+                hasMore = False
+                
+            for payment in jsonData["responseData"]["payments"]:
+                lastFetchedRecordsDateTime = payment["createdAt"]
+                if payment["paymentStatus"]["paymentStatusType"] == 'COMPLETED':
+                    recordsCount += 1
+                    if payment["title"] in bkAllTimeTotal:
+                        bkAllTimeTotal[payment["title"]] += float(payment["amount"]["amount"])
+                    else:
+                        bkAllTimeTotal[payment["title"]] = float(payment["amount"]["amount"])
 
-Reports().get_report('9126918544', 'Suleimanov1996A!')
+                    lastThreeMonths = datetime.strptime(payment["createdAt"], '%Y-%m-%dT%H:%M:%S.%f%z') + timedelta(days=30*3)
+                    if lastThreeMonths.timestamp() > datetime.now().timestamp():
+                        if payment["title"] in bkLastThreeMonthTotal:
+                            bkLastThreeMonthTotal[payment["title"]] += float(payment["amount"]["amount"])
+                        else:
+                            bkLastThreeMonthTotal[payment["title"]] = float(payment["amount"]["amount"])
+
+        for [bkName, bkTotal] in bkAllTimeTotal.items():
+            result["itemsAllTime"].append({"bkName": bkName, "total": bkTotal})
+        
+        for [bkName, bkTotal] in bkLastThreeMonthTotal.items():
+            result["itemsLastThreeMonths"].append({"bkName": bkName, "total": bkTotal})
+
+        result["recordsCount"] = recordsCount
+
+        print("result")
+        print(result)
+        self.driver.close()
+
+        return result
