@@ -19,7 +19,7 @@ class Reports:
         option.add_argument(
             '--no-first-run --no-service-autorun --password-store=basic')
         self.driver = uc.Chrome(options=option, 
-                                #command_executor="http://selenium-hub:4444/wd/hub",
+                                command_executor="http://selenium-hub:4444/wd/hub",
                                 )
 
     def auth(self, username, password):
