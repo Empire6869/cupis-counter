@@ -17,11 +17,12 @@ class Reports:
         option = uc.ChromeOptions()
         option.add_argument(
             '--no-first-run --no-service-autorun --password-store=basic --no-sandbox')
-        self.driver = uc.Chrome(options=option)
+        self.driver = uc.Chrome(options=option, headless=True)
 
     def auth(self, username, password):
         try:
             self.driver.get('https://wallet.1cupis.ru/auth')
+            sleep(5)
 
             timeout = 5
             element_present = EC.presence_of_element_located(
