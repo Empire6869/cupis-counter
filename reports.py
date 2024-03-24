@@ -23,6 +23,7 @@ class Reports:
         try:
             self.driver.get('https://wallet.1cupis.ru/auth')
             sleep(5)
+            self.driver.save_screenshot('auth.png')
 
             timeout = 5
             element_present = EC.presence_of_element_located(
