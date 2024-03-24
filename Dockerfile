@@ -1,4 +1,4 @@
-FROM datawookie/undetected-chromedriver
+FROM ultrafunk/undetected-chromedriver
 
 ENV PYTHONUNBUFFERED=1
 
