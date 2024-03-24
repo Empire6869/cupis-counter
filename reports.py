@@ -71,10 +71,12 @@ class Reports:
             authSuccess = self.auth(username, password)
             print("Auth success")
             print(authSuccess)
+            print("I")
+            print(i)
             if authSuccess:
                 break
 
-        #self.driver.get('https://wallet.1cupis.ru/history')
+        self.driver.get('https://wallet.1cupis.ru/history')
         s = requests.Session()
         selenium_user_agent = self.driver.execute_script(
             "return navigator.userAgent;")
