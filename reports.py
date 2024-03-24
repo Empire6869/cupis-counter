@@ -76,6 +76,15 @@ class Reports:
             if authSuccess:
                 break
 
+        result = {
+            "recordsCount": 0,
+            "itemsAllTime": [],
+            "itemsLastThreeMonths": [],
+            "accountStatus": 'basic'
+        }
+        if not authSuccess:
+            return result
+        
         self.driver.get('https://wallet.1cupis.ru/history')
         s = requests.Session()
         selenium_user_agent = self.driver.execute_script(
@@ -84,12 +93,7 @@ class Reports:
         for cookie in self.driver.get_cookies():
             s.cookies.set(cookie['name'], cookie['value'],
                           domain=cookie['domain'])
-        result = {
-            "recordsCount": 0,
-            "itemsAllTime": [],
-            "itemsLastThreeMonths": [],
-            "accountStatus": 'basic'
-        }
+            
         try:
             accountResponse = s.get('https://wallet.1cupis.ru/profile-api/v1/customer')
             accountReponseJson = accountResponse.json()
