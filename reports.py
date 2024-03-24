@@ -7,8 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import requests
 from datetime import datetime, timedelta
-import math 
-import json
+import math
 
 solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb")
 
@@ -17,10 +16,8 @@ class Reports:
     def __init__(self):
         option = uc.ChromeOptions()
         option.add_argument(
-            '--no-first-run --no-service-autorun --password-store=basic')
-        self.driver = uc.Chrome(options=option, 
-                                command_executor="http://selenium-hub:4444/wd/hub",
-                                )
+            '--no-first-run --no-service-autorun --password-store=basic --no-sandbox')
+        self.driver = uc.Chrome(options=option)
 
     def auth(self, username, password):
         try:

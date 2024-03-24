@@ -1,11 +1,13 @@
-FROM python:3.9
-WORKDIR /app
+FROM datawookie/undetected-chromedriver
+
+ENV PYTHONUNBUFFERED=1
+
 COPY requirements.txt .
+RUN python -m pip install  -r requirements.txt
+RUN pip install gunicorn
 
-RUN pip install -r requirements.txt
+RUN mkdir app
+WORKDIR /app
+COPY . /app
 
-COPY . .
-
-EXPOSE 5001
-
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]
+CMD ["python", "-m", "gunicorn", "app:app", "-b" , ":5000", "--timeout", "1000"]
