@@ -14,16 +14,19 @@ solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb")
 
 class Reports:
     def __init__(self):
-        option = uc.ChromeOptions()
-        option.add_argument(
-            '--no-first-run --no-service-autorun --password-store=basic --no-sandbox')
-        self.driver = uc.Chrome(options=option, headless=True)
+        options = uc.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(
+            '--no-first-run --no-service-autorun --password-store=basic --enable-javascript')
+        options.headless = True
+        self.driver = uc.Chrome(options=options)
+        sleep(2)
 
     def auth(self, username, password):
         try:
             self.driver.get('https://wallet.1cupis.ru/auth')
-            sleep(5)
-            self.driver.save_screenshot('auth.png')
 
             timeout = 5
             element_present = EC.presence_of_element_located(

@@ -3,3 +3,5 @@ flask[async]==3.0.0
 pillow==10.2.0
 2captcha-python==1.2.2
 numpy==1.26.4
+undetected_chromedriver==3.5.2
+selenium==4.16.0
