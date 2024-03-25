@@ -35,7 +35,6 @@ class Reports:
             self.driver.find_element(By.NAME, "phone").send_keys(username)
             self.driver.find_element(By.NAME, "password").send_keys(password)
 
-            authSuccess = False
             for i in range(10):
                 try:
                     img = self.driver.find_element(By.XPATH,
@@ -53,33 +52,64 @@ class Reports:
 
                     try:
                         element_present = EC.presence_of_element_located(
-                            (By.XPATH, '//div[@class="bg-red-00 text-red-03 text-center p-8"]'))
+                            (By.XPATH, '//div[@class="bg-red-00 text-red-03 text-center p-8"]/p'))
                         WebDriverWait(self.driver, 5).until(element_present)
                         error = self.driver.find_element(
-                            By.XPATH, '//div[@class="bg-red-00 text-red-03 text-center p-8"]').text
+                            By.XPATH, '//div[@class="bg-red-00 text-red-03 text-center p-8"]/p').text
+                        
+                        print("error")
                         print(error)
+                        print("final")
+
+                        if error == 'Вы указали неправильный номер или пароль.':
+                            return 'LoginPasswordError', False
 
                         if not error:
-                            return True
+                            return None, True
                     except Exception as e:
-                        return True
+                        try:
+                            element_present = EC.presence_of_element_located(
+                            (By.XPATH, '//div[@class="text-xs text-red-03"]'))
+                            WebDriverWait(self.driver, 5).until(element_present)
+                            error = self.driver.find_element(
+                                By.XPATH, '//div[@class="text-xs text-red-03"]').text
+                            if error == 'В пароле должно быть как минимум 8 символов':
+                                return 'PasswordTooShort', False
+                            
+                            if not error:
+                                return None, True
+                        except Exception as e:
+                            return None, True
+                        
+                        return None, True
                 except Exception as e:
+                    print("E")
                     print(e)
 
-            return authSuccess
+            return 'MaxCaptchaAttempts', False
         except Exception as e:
             print(e)
-            return False
+            return 'TechError', False
 
     def get_report(self, username, password):
+        authSuccessTotal = False
         for i in range(3):
-            authSuccess = self.auth(username, password)
+            [error, authSuccess] = self.auth(username, password)
             print("Auth success")
             print(authSuccess)
+            print("Error")
+            print(error)
             print("I")
             print(i)
             if authSuccess:
+                authSuccessTotal = True
                 break
+
+            if error == 'LoginPasswordError':
+                return 'LoginPasswordError', None
+            
+            if error == 'PasswordTooShort':
+                return 'PasswordTooShort', None
 
         result = {
             "recordsCount": 0,
@@ -87,8 +117,8 @@ class Reports:
             "itemsLastThreeMonths": [],
             "accountStatus": 'basic'
         }
-        if not authSuccess:
-            return result
+        if not authSuccessTotal:
+            return 'TechAuthError', None
         
         self.driver.get('https://wallet.1cupis.ru/history')
         s = requests.Session()
@@ -155,4 +185,4 @@ class Reports:
         print(result)
         self.driver.close()
 
-        return result
+        return None, result
