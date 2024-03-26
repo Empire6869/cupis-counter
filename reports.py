@@ -137,7 +137,11 @@ class Reports:
             print(e)
 
         bkAllTimeTotal = {}
+        bkAllTimeDeposits = {}
+        bkAllTimeWithdraws = {}
         bkLastThreeMonthTotal = {}
+        bkLastThreeMonthsDeposits = {}
+        bkLastThreeMonthsWithdraws = {}
         recordsCount = 0
         hasMore = True
         lastFetchedRecordsDateTime = None
@@ -161,6 +165,16 @@ class Reports:
                     amount = -abs(float(payment["amount"]["amount"]))
                     if payment["subtitle"] == "Выплата выигрыша":
                         amount = abs(amount)
+                        if payment["title"] in bkAllTimeWithdraws:
+                            bkAllTimeWithdraws[payment["title"]] += amount
+                        else:
+                            bkAllTimeWithdraws[payment["title"]] = amount
+                    else:
+                        if payment["title"] in bkAllTimeDeposits:
+                            bkAllTimeDeposits[payment["title"]] += amount
+                        else:
+                            bkAllTimeDeposits[payment["title"]] = amount
+
                     if payment["title"] in bkAllTimeTotal:
                         bkAllTimeTotal[payment["title"]] += amount
                     else:
@@ -168,16 +182,44 @@ class Reports:
 
                     lastThreeMonths = datetime.strptime(payment["createdAt"], '%Y-%m-%dT%H:%M:%S.%f%z') + timedelta(days=30*3)
                     if lastThreeMonths.timestamp() > datetime.now().timestamp():
+                        if payment["subtitle"] == "Выплата выигрыша":
+                            if payment["title"] in bkLastThreeMonthsWithdraws:
+                                bkLastThreeMonthsWithdraws[payment["title"]] += amount
+                            else:
+                                bkLastThreeMonthsWithdraws[payment["title"]] = amount
+                        else:
+                            if payment["title"] in bkLastThreeMonthsDeposits:
+                                bkLastThreeMonthsDeposits[payment["title"]] += amount
+                            else:
+                                bkLastThreeMonthsDeposits[payment["title"]] = amount
+
                         if payment["title"] in bkLastThreeMonthTotal:
                             bkLastThreeMonthTotal[payment["title"]] += amount
                         else:
                             bkLastThreeMonthTotal[payment["title"]] = amount
 
         for [bkName, bkTotal] in bkAllTimeTotal.items():
-            result["itemsAllTime"].append({"bkName": bkName, "total": math.floor(bkTotal)})
+            deposits = 0
+            withdraws = 0
+            if bkName in bkAllTimeDeposits:
+                deposits = math.floor(bkAllTimeDeposits[bkName])
+
+            if bkName in bkAllTimeWithdraws:
+                withdraws = math.floor(bkAllTimeWithdraws[bkName])
+
+            result["itemsAllTime"].append({"bkName": bkName, "total": math.floor(bkTotal), "deposits": deposits, "withdraws": withdraws})
         
         for [bkName, bkTotal] in bkLastThreeMonthTotal.items():
-            result["itemsLastThreeMonths"].append({"bkName": bkName, "total": math.floor(bkTotal)})
+            deposits = 0
+            withdraws = 0
+
+            if bkName in bkLastThreeMonthsDeposits:
+                deposits = math.floor(bkLastThreeMonthsDeposits[bkName])
+
+            if bkName in bkLastThreeMonthsWithdraws:
+                withdraws = math.floor(bkLastThreeMonthsWithdraws[bkName])
+
+            result["itemsLastThreeMonths"].append({"bkName": bkName, "total": math.floor(bkTotal), "deposits": deposits, "withdraws": withdraws})
 
         result["recordsCount"] = recordsCount
 
