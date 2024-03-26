@@ -106,9 +106,11 @@ class Reports:
                 break
 
             if error == 'LoginPasswordError':
+                self.driver.close()
                 return 'LoginPasswordError', None
             
             if error == 'PasswordTooShort':
+                self.driver.close()
                 return 'PasswordTooShort', None
 
         result = {
@@ -118,6 +120,7 @@ class Reports:
             "accountStatus": 'basic'
         }
         if not authSuccessTotal:
+            self.driver.close()
             return 'TechAuthError', None
         
         self.driver.get('https://wallet.1cupis.ru/history')
