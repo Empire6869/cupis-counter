@@ -25,6 +25,9 @@ async def load_cars():
     
     if error == 'PasswordTooShort':
         return Response("TechAuthError", status=402)
+    
+    if error == 'SuspisiosActivity':
+        return Response("SuspisiosActivity", status=405)
 
     return jsonify(report)
 

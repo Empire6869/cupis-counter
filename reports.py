@@ -63,6 +63,9 @@ class Reports:
 
                         if error == 'Вы указали неправильный номер или пароль.':
                             return 'LoginPasswordError', False
+                        
+                        if error == 'Подозрительная активность. Попробуйте повторить позднее или обратитесь в службу поддержки.':
+                            return 'SuspisiosActivity', False
 
                         if not error:
                             return None, True
