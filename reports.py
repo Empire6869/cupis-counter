@@ -36,6 +36,9 @@ class Reports:
         chrome_options = uc.ChromeOptions()
         chrome_options.headless = True
         chrome_options.accept_insecure_certs=True
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-first-run --no-service-autorun --password-store=basic --enable-javascript')
         proxy_options = {}
         
         if (len(proxyArray)):
@@ -123,7 +126,7 @@ class Reports:
 
             return 'MaxCaptchaAttempts', False
         except Exception as e:
-            logger.error("Auth tech error {err}", err=error)
+            logger.error("Auth tech error {err}", err=e)
             return 'TechError', False
 
     def get_report(self, username, password):
