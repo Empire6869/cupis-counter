@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 from time import sleep
-import undetected_chromedriver as uc
+import seleniumwire.undetected_chromedriver as uc
 from twocaptcha import TwoCaptcha
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -8,20 +8,51 @@ from selenium.webdriver.common.keys import Keys
 import requests
 from datetime import datetime, timedelta
 import math
+from loguru import logger
 
-solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb")
-
+solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb") 
+proxyArray = [
+    'https://user170118:nu0cgs@46.38.128.96:6984',
+    'https://user170118:nu0cgs@212.16.80.140:6984',
+    'https://user170118:nu0cgs@212.16.80.149:6984',
+    'https://user170118:nu0cgs@212.16.80.125:6984',
+    'https://user170118:nu0cgs@46.38.128.162:6984',
+    'https://user170118:nu0cgs@212.16.80.70:6984',
+    'https://user170118:nu0cgs@46.38.128.187:6984'
+    ]
+currentProxy = 0
 
 class Reports:
     def __init__(self):
-        options = uc.ChromeOptions()
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument(
-            '--no-first-run --no-service-autorun --password-store=basic --enable-javascript')
-        options.headless = True
-        self.driver = uc.Chrome(options=options)
+        global currentProxy
+        # options = uc.ChromeOptions()
+        # options.add_argument('--headless')
+        # options.add_argument('--no-sandbox')
+        # options.add_argument('--disable-dev-shm-usage')
+        # options.add_argument(
+        #     '--no-first-run --no-service-autorun --password-store=basic --enable-javascript')
+        # options.headless = True
+        ## Chrome Options
+        chrome_options = uc.ChromeOptions()
+        chrome_options.headless = True
+        chrome_options.accept_insecure_certs=True
+        proxy_options = {}
+        
+        if (len(proxyArray)):
+            proxyUrl = proxyArray[currentProxy]
+            logger.info("Using proxy {url}, current proxy id {id}", url=proxyUrl, id=currentProxy)
+            currentProxy = (currentProxy + 1) % len(proxyArray)
+            proxy_options["proxy"] = {
+                'http': proxyUrl,
+                'https': proxyUrl,
+                'no_proxy': 'localhost,127.0.0.1'
+            }
+
+        ## Create Chrome Driver
+        self.driver = uc.Chrome(
+            options=chrome_options,
+            seleniumwire_options=proxy_options
+        )
         sleep(2)
 
     def auth(self, username, password):
@@ -41,7 +72,7 @@ class Reports:
                                                    '//div[@class="w-240px h-64px relative"]/img')
                     src = img.get_attribute('src')
                     res = solver.normal(src)
-                    print(f"Solving captcha {i} attempt")
+                    logger.debug("Solving captcha attempt {attempt}", attempt=i)
                     captchaEl = self.driver.find_element(
                         By.XPATH, '//input[@data-qa="captcha-input"]')
                     for i in range(6):
@@ -57,9 +88,7 @@ class Reports:
                         error = self.driver.find_element(
                             By.XPATH, '//div[@class="bg-red-00 text-red-03 text-center p-8"]/p').text
                         
-                        print("error")
-                        print(error)
-                        print("final")
+                        logger.debug("Error auth {err}", err=error)
 
                         if error == 'Вы указали неправильный номер или пароль.':
                             return 'LoginPasswordError', False
@@ -76,6 +105,9 @@ class Reports:
                             WebDriverWait(self.driver, 5).until(element_present)
                             error = self.driver.find_element(
                                 By.XPATH, '//div[@class="text-xs text-red-03"]').text
+                            
+                            logger.debug("Error auth {err}", err=error)
+                            
                             if error == 'В пароле должно быть как минимум 8 символов':
                                 return 'PasswordTooShort', False
                             
@@ -91,19 +123,14 @@ class Reports:
 
             return 'MaxCaptchaAttempts', False
         except Exception as e:
-            print(e)
+            logger.error("Auth tech error {err}", err=error)
             return 'TechError', False
 
     def get_report(self, username, password):
         authSuccessTotal = False
         for i in range(3):
             [error, authSuccess] = self.auth(username, password)
-            print("Auth success")
-            print(authSuccess)
-            print("Error")
-            print(error)
-            print("I")
-            print(i)
+            logger.info("Authentication status for {user} is {success}, error {err}", user=username, success=authSuccess, err=error)
             if authSuccess:
                 authSuccessTotal = True
                 break
@@ -140,7 +167,7 @@ class Reports:
             accountReponseJson = accountResponse.json()
             result["accountStatus"] = accountReponseJson["responseData"]["identification"].lower()
         except Exception as e:
-            print(e)
+            logger.warning("Not able to get customer profile {user}, error {err}", user=username, err=e)
 
         bkAllTimeTotal = {}
         bkAllTimeDeposits = {}
@@ -229,8 +256,7 @@ class Reports:
 
         result["recordsCount"] = recordsCount
 
-        print("result")
-        print(result)
+        logger.info("Success fetching user report {user}, records count {count}", user=username, count=result["recordsCount"])
         self.driver.close()
 
         return None, result
