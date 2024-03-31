@@ -25,14 +25,6 @@ currentProxy = 0
 class Reports:
     def __init__(self):
         global currentProxy
-        # options = uc.ChromeOptions()
-        # options.add_argument('--headless')
-        # options.add_argument('--no-sandbox')
-        # options.add_argument('--disable-dev-shm-usage')
-        # options.add_argument(
-        #     '--no-first-run --no-service-autorun --password-store=basic --enable-javascript')
-        # options.headless = True
-        ## Chrome Options
         chrome_options = uc.ChromeOptions()
         chrome_options.headless = True
         chrome_options.accept_insecure_certs=True
@@ -93,10 +85,10 @@ class Reports:
                         
                         logger.debug("Error auth {err}", err=error)
 
-                        if error == 'Вы указали неправильный номер или пароль.':
+                        if 'вы указали неправильный номер или пароль' in error.lower():
                             return 'LoginPasswordError', False
                         
-                        if error == 'Подозрительная активность. Попробуйте повторить позднее или обратитесь в службу поддержки.':
+                        if 'подозрительная активность' in error.lower():
                             return 'SuspisiosActivity', False
 
                         if not error:
