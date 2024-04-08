@@ -9,18 +9,42 @@ import requests
 from datetime import datetime, timedelta
 import math
 from loguru import logger
+from random import randrange
 
 solver = TwoCaptcha("29952bd5475b49e0cbfbd26d05607ebb") 
 proxyArray = [
-    'https://user170118:nu0cgs@46.38.128.96:6984',
-    'https://user170118:nu0cgs@212.16.80.140:6984',
-    'https://user170118:nu0cgs@212.16.80.149:6984',
-    'https://user170118:nu0cgs@212.16.80.125:6984',
-    'https://user170118:nu0cgs@46.38.128.162:6984',
-    'https://user170118:nu0cgs@212.16.80.70:6984',
-    'https://user170118:nu0cgs@46.38.128.187:6984'
+    'https://user170118:nu0cgs@193.19.191.254:3719',
+    'https://user170118:nu0cgs@85.209.105.25:3719',
+    'https://user170118:nu0cgs@37.140.221.84:3719',
+    'https://user170118:nu0cgs@193.33.48.56:3719',
+    'https://user170118:nu0cgs@85.209.107.133:3719',
+    'https://user170118:nu0cgs@45.141.196.88:3719',
+    'https://user170118:nu0cgs@85.209.106.186:3719',
+    'https://user170118:nu0cgs@37.140.221.71:3719',
+    'https://user170118:nu0cgs@193.19.191.255:3719',
+    'https://user170118:nu0cgs@85.209.105.187:3719',
+    'https://user170118:nu0cgs@85.209.107.131:3719',
+    'https://user170118:nu0cgs@45.141.196.11:3719',
+    'https://user170118:nu0cgs@85.209.106.54:3719',
+    'https://user170118:nu0cgs@193.33.48.0:3719',
+    'https://user170118:nu0cgs@37.140.221.133:3719',
+    'https://user170118:nu0cgs@37.140.221.48:3719',
+    'https://user170118:nu0cgs@193.33.48.29:3719',
+    'https://user170118:nu0cgs@85.209.106.46:3719',
+    'https://user170118:nu0cgs@193.33.48.237:3719',
+    'https://user170118:nu0cgs@85.209.107.201:3719',
+    'https://user170118:nu0cgs@37.140.221.89:3719',
+    'https://user170118:nu0cgs@45.141.196.115:3719',
+    'https://user170118:nu0cgs@146.255.185.181:3719',
+    'https://user170118:nu0cgs@193.19.191.118:3719',
+    'https://user170118:nu0cgs@193.33.48.8:3719',
+    'https://user170118:nu0cgs@37.77.147.37:3719',
+    'https://user170118:nu0cgs@85.209.107.204:3719',
+    'https://user170118:nu0cgs@85.209.107.1:3719',
+    'https://user170118:nu0cgs@37.77.147.99:3719',
+    'https://user170118:nu0cgs@80.64.29.93:3719',
     ]
-currentProxy = 0
+currentProxy = randrange(len(proxyArray))
 
 class Reports:
     def __init__(self):
